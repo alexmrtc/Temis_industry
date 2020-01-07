@@ -40,6 +40,27 @@ public class DayCycle : GameInfo
         moon.transform.LookAt(Vector3.zero);
 
         moneyText.text = money.ToString() + "$";
+
+        if (hour > 18 && hour < 7)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                materials = housesForMaterials[i].GetComponent<Renderer>().materials;
+                materials[7] = windowlightOn;
+                materials[8] = windowlightOn;
+                housesForMaterials[i].GetComponent<Renderer>().materials = materials;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                materials = housesForMaterials[i].GetComponent<Renderer>().materials;
+                materials[7] = windowlightOff;
+                materials[8] = windowlightOff;
+                housesForMaterials[i].GetComponent<Renderer>().materials = materials;
+            }
+        }
     }
 
     void PrintHour(float _hour)
@@ -94,26 +115,6 @@ public class DayCycle : GameInfo
             GetMoneyFunction();
         }
 
-        if (hour > 16 && hour < 7)
-        {
-            for (int i = 0; i < housesForMaterials.Length; i++)
-            {
-                materials = housesForMaterials[i].GetComponent<Renderer>().materials;
-                materials[7] = windowlightOn;
-                materials[8] = windowlightOn;
-                housesForMaterials[i].GetComponent<Renderer>().materials = materials;
-            }
-        }
-        else
-        {
-            for (int i = 0; i < housesForMaterials.Length; i++)
-            {
-                materials = housesForMaterials[i].GetComponent<Renderer>().materials;
-                materials[7] = windowlightOff;
-                materials[8] = windowlightOff;
-                housesForMaterials[i].GetComponent<Renderer>().materials = materials;
-            }
-        }
 
         PrintHour(hour);
         Debug.Log("Income: " + incomePerDay);

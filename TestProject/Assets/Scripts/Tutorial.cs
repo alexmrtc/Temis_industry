@@ -127,7 +127,7 @@ public class Tutorial : GameInfo
     public void BuildHouse()
     {
         houses[housesForWorkers].SetActive(true);
-        workersHappiness += 0.1f;
+        IncreaseWorkerHappiness(0.1f);
         FindObjectOfType<DayCycle>().money -= houseConstructionPrice;
         //moneyText.text = money.ToString();
         image.SetActive(false);
@@ -135,10 +135,37 @@ public class Tutorial : GameInfo
         Debug.Log(money);
     }
 
-    void ReduceWorkerHappiness()
+    #region Increase/Decrease Happiness
+    void ReduceWorkerHappiness(float percent)
     {
-        workersHappiness -= 0.1f;
+        workersHappiness -= percent;
     }
+
+    void ReduceCompanyHappiness(float percent)
+    {
+        companyHappiness -= percent;
+    }
+
+    void ReduceInvestorsHappiness(float percent)
+    {
+        investorsHappiness -= percent;
+    }
+
+    void IncreaseWorkerHappiness(float percent)
+    {
+        workersHappiness += percent;
+    }
+
+    void IncreaseCompanyHappiness(float percent)
+    {
+        companyHappiness += percent;
+    }
+
+    void IncreaseInvestorsHappiness(float percent)
+    {
+        investorsHappiness += percent;
+    }
+    #endregion
 
     public void ShowEvent()
     {
@@ -173,15 +200,19 @@ public class Tutorial : GameInfo
         switch (eventCase)
         {
             case 1:
-                ReduceWorkerHappiness();
+                ReduceWorkerHappiness(0.1f);
                 break;
             case 2:
+                ReduceCompanyHappiness(0.1f);
                 break;
             case 3:
+                ReduceWorkerHappiness(0.1f);
                 break;
             case 4:
+                ReduceInvestorsHappiness(0.1f);
                 break;
             case 5:
+                ReduceWorkerHappiness(0.2f);
                 break;
         }
     }
@@ -199,12 +230,28 @@ public class Tutorial : GameInfo
                 declineText.text = "Don't waste money on them";
                 break;
             case 2:
+                title.text = "New material";
+                dilemaText.text = "Our scientists have found a combination of materials that may increase the sale value of our products, but it could result in a failure";
+                acceptText.text = "Research";
+                declineText.text = "Keep it like always";
                 break;
             case 3:
+                title.text = "Workers rights";
+                dilemaText.text = "Our workers demand an 8 hour shift instead of working until late";
+                acceptText.text = "Grant rights";
+                declineText.text = "Keep working slaves!";
                 break;
             case 4:
+                title.text = "We found new workers";
+                dilemaText.text = "Our investors believe that we need more workers";
+                acceptText.text = "Recruit 10 workers";
+                declineText.text = "Don't do it";
                 break;
             case 5:
+                title.text = "Injuries";
+                dilemaText.text = "Some workers have been injured during their shifts and now ask for a compensation";
+                acceptText.text = "Give money";
+                declineText.text = "Don't pay them";
                 break;
         }
     }
