@@ -26,8 +26,8 @@ public class DayCycle : GameInfo
         hourText.text = hour.ToString() + ":00";
         StartCoroutine(NextTime());
 
-        money = startingMoney;
-        moneyText.text = money.ToString() + "$";
+        //money = startingMoney;
+        //moneyText.text = money.ToString() + "$";
     }
 
     // Update is called once per frame
@@ -39,7 +39,7 @@ public class DayCycle : GameInfo
         moon.transform.RotateAround(Vector3.zero, Vector3.forward, sunSpeed * Time.deltaTime);
         moon.transform.LookAt(Vector3.zero);
 
-        moneyText.text = money.ToString() + "$";
+        //moneyText.text = money.ToString() + "$";
 
         if (hour > 18 && hour < 7)
         {
@@ -73,6 +73,7 @@ public class DayCycle : GameInfo
         {
             hourText.text = hour.ToString() + ":00";
         }
+        Debug.Log("Num Workers DayCycle: "+numWorkers);
     }
 
     IEnumerator NextTime()
@@ -91,18 +92,22 @@ public class DayCycle : GameInfo
         {
             if (hour > shiftStart && hour < shiftEnd)
             {
-                incomePerDay += (numWorkers * piecesBuiltPerHourByWorker) * priceOfSalePerPieceBuilt;
+                FindObjectOfType<Tutorial>().incomePerDay += (numWorkers * piecesBuiltPerHourByWorker) * priceOfSalePerPieceBuilt;
+
+                FindObjectOfType<Tutorial>().piecesBuilt += numWorkers * piecesBuiltPerHourByWorker;
             }
         }
         else
         {
             if (hour > shiftStart && hour < lunchShiftBegin)
             {
-                incomePerDay += (numWorkers * piecesBuiltPerHourByWorker) * priceOfSalePerPieceBuilt;
+                FindObjectOfType<Tutorial>().incomePerDay += (numWorkers * piecesBuiltPerHourByWorker) * priceOfSalePerPieceBuilt;
+                FindObjectOfType<Tutorial>().piecesBuilt += numWorkers * piecesBuiltPerHourByWorker;
             }
             else if (hour > lunchShiftEnd && hour < shiftEnd)
             {
-                incomePerDay += (numWorkers * piecesBuiltPerHourByWorker) * priceOfSalePerPieceBuilt;
+                FindObjectOfType<Tutorial>().incomePerDay += (numWorkers * piecesBuiltPerHourByWorker) * priceOfSalePerPieceBuilt;
+                FindObjectOfType<Tutorial>().piecesBuilt += numWorkers * piecesBuiltPerHourByWorker;
             }
             else
             {
@@ -112,12 +117,12 @@ public class DayCycle : GameInfo
 
         if(hour == 6)
         {
-            GetMoneyFunction();
+            FindObjectOfType<Tutorial>().GetMoneyFunction();
         }
 
 
         PrintHour(hour);
-        Debug.Log("Income: " + incomePerDay);
+        Debug.Log("Income: " + FindObjectOfType<Tutorial>().incomePerDay);
         StartCoroutine(NextTime());
     }
 

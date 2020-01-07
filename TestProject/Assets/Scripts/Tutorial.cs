@@ -54,7 +54,8 @@ public class Tutorial : GameInfo
         shiftStartDropdown.value = shiftStart;
         shiftEndDropdown.value = shiftEnd;
 
-        //money = startingMoney;
+        money = startingMoney;
+        moneyText.text = money.ToString() + "$";
 
         InitTutorial();
     }
@@ -65,13 +66,24 @@ public class Tutorial : GameInfo
         workerSlider.value = workersHappiness;
         companySlider.value = companyHappiness;
         investorSlider.value = investorsHappiness;
+
+        moneyText.text = money.ToString() + "$";
     }
 
     public void InitTutorial()
     {
         StartCoroutine(RandomEvent());
+
+        StartCoroutine(MonthPayment());
     }
 
+    public void GetMoneyFunction()
+    {
+        money += ((earningsPerWorker * workersHappiness) * numWorkers) + incomePerDay;
+        Debug.Log("Money: " + money);
+        //moneyText.text = money.ToString() + "$";
+        incomePerDay = 0;
+    }
 
     public void ChangeShiftEnd()
     {
@@ -114,7 +126,7 @@ public class Tutorial : GameInfo
 
     public void CheckIfCanAfford()
     {
-        if (FindObjectOfType<DayCycle>().money - houseConstructionPrice > 0)
+        if (money - houseConstructionPrice > 0)
         {
             BuildHouse();
         }
@@ -128,11 +140,15 @@ public class Tutorial : GameInfo
     {
         houses[housesForWorkers].SetActive(true);
         IncreaseWorkerHappiness(0.1f);
-        FindObjectOfType<DayCycle>().money -= houseConstructionPrice;
-        //moneyText.text = money.ToString();
+        money -= houseConstructionPrice;
         image.SetActive(false);
         housesForWorkers++;
         Debug.Log(money);
+    }
+
+    public void RecruitWorkers(int _workers)
+    {
+        FindObjectOfType<DayCycle>().numWorkers += _workers;
     }
 
     #region Increase/Decrease Happiness
@@ -189,6 +205,7 @@ public class Tutorial : GameInfo
             case 3:
                 break;
             case 4:
+                RecruitWorkers(10);
                 break;
             case 5:
                 break;
@@ -266,7 +283,9 @@ public class Tutorial : GameInfo
 
     IEnumerator MonthPayment()
     {
-        yield return new WaitForSeconds(3600);
-        money -= (numWorkers * workerCost);
+        yield return new WaitForSeconds(300);
+        money -= (numWorkers * workerCost) - (piecesBuilt * costOfProductionPerPieceBuilt) - (housesForWorkers * houseMaintainancePrice);
+        StartCoroutine(MonthPayment());
     }
+
 }
