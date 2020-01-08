@@ -72,6 +72,7 @@ public class Tutorial : GameInfo
         investorSlider.value = investorsHappiness;
 
         moneyText.text = money.ToString() + "$";
+        numWorkersText.text = numWorkers.ToString();
     }
 
     public void InitTutorial()
@@ -91,41 +92,72 @@ public class Tutorial : GameInfo
 
     public void ChangeShiftEnd()
     {
-        shiftEnd = shiftEndDropdown.value;
+        FindObjectOfType<DayCycle>().shiftEnd = shiftEndDropdown.value;
 
-        if (shiftEndDropdown.value <= shiftStart)
+        if (shiftEndDropdown.value <= FindObjectOfType<DayCycle>().shiftStart)
         {
-            shiftStart = shiftEnd - 1;
+            FindObjectOfType<DayCycle>().shiftStart = FindObjectOfType<DayCycle>().shiftEnd - 1;
 
-            if (shiftStart < 0)
+            if (FindObjectOfType<DayCycle>().shiftStart < 0)
             {
                 shiftStart = 23;
             }
 
-            shiftStartDropdown.value = shiftStart;
+            shiftStartDropdown.value = FindObjectOfType<DayCycle>().shiftStart;
         }
 
-        Debug.Log("ShiftEnds at: " + shiftEnd);
+        if (shift8hours == true)
+        {
+            if (FindObjectOfType<DayCycle>().shiftEnd - FindObjectOfType<DayCycle>().shiftStart > 8)
+            {
+                FindObjectOfType<DayCycle>().shiftStart = FindObjectOfType<DayCycle>().shiftEnd;
+                for (int i = 0; i < 8; i++)
+                {
+                    FindObjectOfType<DayCycle>().shiftStart--;
+                    if (FindObjectOfType<DayCycle>().shiftStart < 0)
+                    {
+                        FindObjectOfType<DayCycle>().shiftEnd = 23;
+                    }
+                }
+            }
+        }
+        Debug.Log("ShiftEnds at: " + FindObjectOfType<DayCycle>().shiftEnd);
     }
 
     public void ChangeShiftStart()
     {
-        shiftStart = shiftStartDropdown.value;
+        FindObjectOfType<DayCycle>().shiftStart = shiftStartDropdown.value;
 
-        if (shiftStartDropdown.value >= shiftEnd)
+        if (shiftStartDropdown.value >= FindObjectOfType<DayCycle>().shiftEnd)
         {
-            shiftEnd = shiftStart + 1;
+            FindObjectOfType<DayCycle>().shiftEnd = FindObjectOfType<DayCycle>().shiftStart + 1;
 
-            if (shiftEnd > 23)
+            if (FindObjectOfType<DayCycle>().shiftEnd > 23)
             {
-                shiftEnd = 0;
+                FindObjectOfType<DayCycle>().shiftEnd = 0;
             }
 
-            shiftEndDropdown.value = shiftEnd;
+            shiftEndDropdown.value = FindObjectOfType<DayCycle>().shiftEnd;
+        }
+
+        if (shift8hours == true)
+        {
+            if (FindObjectOfType<DayCycle>().shiftEnd - FindObjectOfType<DayCycle>().shiftStart > 8)
+            {
+                FindObjectOfType<DayCycle>().shiftEnd = FindObjectOfType<DayCycle>().shiftStart;
+                for (int i  = 0; i < 8; i++)
+                {
+                    FindObjectOfType<DayCycle>().shiftEnd++;
+                    if (FindObjectOfType<DayCycle>().shiftEnd > 23)
+                    {
+                        FindObjectOfType<DayCycle>().shiftEnd = 0;
+                    }
+                }
+            }
         }
 
 
-        Debug.Log("ShiftStarts at: " + shiftStart);
+        Debug.Log("ShiftStarts at: " + FindObjectOfType<DayCycle>().shiftStart);
     }
 
     public void CheckIfCanAfford()
@@ -153,7 +185,14 @@ public class Tutorial : GameInfo
 
     public void RecruitWorkers(int _workers)
     {
-        FindObjectOfType<DayCycle>().numWorkers += _workers;
+        numWorkers += _workers;
+    }
+
+    public void PayInjuries()
+    {
+        int numWorkersInjured = Random.Range(1, 5);
+
+        money -= injuries * numWorkersInjured;
     }
 
     #region Increase/Decrease Happiness
@@ -203,21 +242,41 @@ public class Tutorial : GameInfo
         workerPanel.SetActive(true);
     }
 
+    public void HideWorkerPanel()
+    {
+        workerPanel.SetActive(false);
+    }
+
     public void AcceptEvent()
     {
         switch (eventCase)
         {
             case 1:
                 CheckIfCanAfford();
+                HideEvent();
                 break;
             case 2:
+                IncreaseWorkerHappiness(0.1f);
+                ReduceInvestorsHappiness(0.1f);
+                StartCoroutine(ResearchMaterial());
+                HideEvent();
                 break;
             case 3:
+                IncreaseWorkerHappiness(0.2f);
+                shift8hours = true;
+                ChangeShiftStart();
+                HideEvent();
                 break;
             case 4:
+                IncreaseInvestorsHappiness(0.1f);
                 RecruitWorkers(10);
+                HideEvent();
                 break;
             case 5:
+                IncreaseWorkerHappiness(0.1f);
+                ReduceCompanyHappiness(0.1f);
+                PayInjuries();
+                HideEvent();
                 break;
         }
     }
@@ -252,7 +311,6 @@ public class Tutorial : GameInfo
     public void GenerateEvent()
     {
         eventCase = Random.Range(1, 5);
-        eventCase = 1;
         switch (eventCase)
         {
             case 1:
@@ -299,9 +357,30 @@ public class Tutorial : GameInfo
     IEnumerator MonthPayment()
     {
         yield return new WaitForSeconds(300);
-        money -= (numWorkers * workerCost) - (piecesBuilt * costOfProductionPerPieceBuilt) - (housesForWorkers * houseMaintainancePrice);
+        money -= ((numWorkers * workerCost) + (piecesBuilt * costOfProductionPerPieceBuilt) + (housesForWorkers * houseMaintainancePrice));
         StartCoroutine(MonthPayment());
         Debug.Log("Money after payment: " + money);
     }
 
+    IEnumerator ResearchMaterial()
+    {
+        money -= 1000;
+        yield return new WaitForSeconds(Random.Range(10, 20));
+        int random = Random.Range(1, 10);
+
+        if (random > 7)
+        {
+            costOfProductionPerPieceBuilt -= 50;
+        }
+        else
+        {
+            costOfProductionPerPieceBuilt += 50;
+        }
+    }
+
+    IEnumerator LookForWorkers()
+    {
+        yield return new WaitForSeconds(15);
+        numWorkers += Random.Range(5, 10);
+    }
 }

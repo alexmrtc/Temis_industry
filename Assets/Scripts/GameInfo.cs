@@ -29,6 +29,7 @@ public class GameInfo : MonoBehaviour
 
     public const float startingMoney = 500000;
     public float money;
+    public float injuries = 300; 
 
     public float incomePerDay = 0;
     public int piecesBuilt;
@@ -39,6 +40,8 @@ public class GameInfo : MonoBehaviour
 
     public int shiftStart = 6;
     public int shiftEnd = 21;
+
+    public bool shift8hours = false;
 
     // Start is called before the first frame update
     void Start()
