@@ -25,6 +25,16 @@ public class FlowMenus : MonoBehaviour
         SceneManager.LoadScene("Tutorial");
     }
 
+    public void StartInfo()
+    {
+        SceneManager.LoadScene("Info");
+    }
+
+    public void GoMainMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
+    }
+
     public void GoToBook()
     {
         menuBook.SetActive(true);
@@ -35,5 +45,10 @@ public class FlowMenus : MonoBehaviour
     {
         menuBook.SetActive(false);
         workerInfo.SetActive(true);
-    }    
+    }
+
+    public void Quit()
+    {
+        Application.Quit();
+    }
 }

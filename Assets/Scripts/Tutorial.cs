@@ -22,9 +22,8 @@ public class Tutorial : GameInfo
     public Material windowlightOff;
     Material[] materials;
 
-    public AudioSource backgroundMusic;
-    public AudioClip day;
-    public AudioClip night;
+    private int maxFire = 0;
+    private int maxHire = 0;
 
     #region Workers Panel
     public GameObject workerPanel;
@@ -32,7 +31,33 @@ public class Tutorial : GameInfo
 
     public Dropdown shiftStartDropdown;
     public Dropdown shiftEndDropdown;
+
+    public GameObject hirePanel;
+    public Text hireXworkers;
+    public Text hireQuestion;
+
+    public GameObject firePanel;
+    public Text fireXworkers;
+    public Text fireQuestion;
     #endregion
+
+    public GameObject companyPanel;
+    public Text totalPieceText;
+    public Text piecePerWorkerText;
+    public Text piecePriceText;
+    public Text maintainanceText;
+    public Text paycheck;
+
+
+    public GameObject investorsPanel;
+    public Text housePriceText;
+    public Text productionCostText;
+    public Text totalProductionCostText;
+
+    public GameObject win;
+    public GameObject lose;
+    public GameObject menu;
+
     #region Event related
     #region Event Components in Scene
     public Text title;
@@ -45,6 +70,13 @@ public class Tutorial : GameInfo
 
     public Dropdown ShiftEndDropdown { get => shiftEndDropdown; set => shiftEndDropdown = value; }
     #endregion
+
+    public AudioSource cheer;
+    public AudioSource boo;
+    public AudioSource buttonClick;
+    public AudioSource gameOver;
+    public AudioSource winSound;
+    public AudioSource construction;
 
     // Start is called before the first frame update
     void Start()
@@ -73,13 +105,63 @@ public class Tutorial : GameInfo
 
         moneyText.text = money.ToString() + "$";
         numWorkersText.text = numWorkers.ToString();
+
+        totalPieceText.text = (piecesBuiltPerHourByWorker * numWorkers * (shiftEnd - shiftStart)).ToString();
+        piecePerWorkerText.text = piecesBuiltPerHourByWorker.ToString();
+        piecePriceText.text = priceOfSalePerPieceBuilt.ToString();
+        maintainanceText.text = ((numWorkers * workerCost) + (piecesBuilt * costOfProductionPerPieceBuilt) + (housesForWorkers * houseMaintainancePrice)).ToString();
+        paycheck.text = workerCost.ToString();
+
+        housePriceText.text = houseConstructionPrice.ToString();
+        productionCostText.text = costOfProductionPerPieceBuilt.ToString();
+        totalProductionCostText.text = (((piecesBuiltPerHourByWorker * numWorkers) * costOfProductionPerPieceBuilt) * (shiftEnd - shiftStart)).ToString();
+
+        if (workersHappiness == 0)
+        {
+            GameOver();
+        }
+
+        if (companyHappiness == 0)
+        {
+            GameOver();
+        }
+
+        if (investorsHappiness == 0)
+        {
+            GameOver();
+        }
+
+        if (money == 0)
+        {
+            GameOver();
+        }
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            GameOver();
+        }
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            Win();
+        }
+
+        if (daysSurvived == 30)
+        {
+            Win();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            ShowMenu();
+        }
     }
 
     public void InitTutorial()
     {
         StartCoroutine(RandomEvent());
 
-        StartCoroutine(MonthPayment());
+        StartCoroutine(Payment());
     }
 
     public void GetMoneyFunction()
@@ -145,7 +227,7 @@ public class Tutorial : GameInfo
             if (FindObjectOfType<DayCycle>().shiftEnd - FindObjectOfType<DayCycle>().shiftStart > 8)
             {
                 FindObjectOfType<DayCycle>().shiftEnd = FindObjectOfType<DayCycle>().shiftStart;
-                for (int i  = 0; i < 8; i++)
+                for (int i = 0; i < 8; i++)
                 {
                     FindObjectOfType<DayCycle>().shiftEnd++;
                     if (FindObjectOfType<DayCycle>().shiftEnd > 23)
@@ -162,7 +244,7 @@ public class Tutorial : GameInfo
 
     public void CheckIfCanAfford()
     {
-        if (money - houseConstructionPrice > 0)
+        if (money - houseConstructionPrice >= 0)
         {
             BuildHouse();
         }
@@ -174,11 +256,16 @@ public class Tutorial : GameInfo
 
     public void BuildHouse()
     {
-        houses[housesForWorkers].SetActive(true);
-        IncreaseWorkerHappiness(0.1f);
-        money -= houseConstructionPrice;
-        housesForWorkers++;
-        
+        if (housesForWorkers + 1 <= houses.Length)
+        {
+            houses[housesForWorkers].SetActive(true);
+            IncreaseWorkerHappiness(0.1f);
+            cheer.Play();
+            money -= houseConstructionPrice;
+            housesForWorkers++;
+            construction.Play();
+        }
+
         Debug.Log(money);
         HideEvent();
     }
@@ -227,6 +314,7 @@ public class Tutorial : GameInfo
     }
     #endregion
 
+    #region Show and Hide UI
     public void ShowEvent()
     {
         image.SetActive(true);
@@ -247,24 +335,161 @@ public class Tutorial : GameInfo
         workerPanel.SetActive(false);
     }
 
+    public void ShowHirePeople()
+    {
+        hirePanel.SetActive(true);
+        LookForWorkers();
+    }
+
+    public void HideHirePeople()
+    {
+        hirePanel.SetActive(false);
+    }
+
+    public void ShowFirePeople()
+    {
+        firePanel.SetActive(true);
+        FireWorkers();
+    }
+
+    public void HideFirePeople()
+    {
+        firePanel.SetActive(false);
+    }
+
+    public void ShowCompanyPanel()
+    {
+        companyPanel.SetActive(true);
+    }
+
+    public void HideCompanyPanel()
+    {
+        companyPanel.SetActive(false);
+    }
+
+    public void ShowInvestorPanel()
+    {
+        investorsPanel.SetActive(true);
+    }
+
+    public void HideInvestorPanel()
+    {
+        investorsPanel.SetActive(false);
+    }
+
+    public void ShowMenu()
+    {
+        menu.SetActive(true);
+    }
+
+    public void HideMenu()
+    {
+        menu.SetActive(false);
+    }
+
+    #endregion
+
+    #region Hire/Fire
+    public void LookForWorkers()
+    {
+        workersHire = Random.Range(5, 10);
+        maxHire = workersHire;
+        UpdateFireHireTexts();
+    }
+
+    public void FireWorkers()
+    {
+        workersFire = numWorkers;
+        UpdateFireHireTexts();
+    }
+
+    public void IncreaseFire()
+    {
+        if (workersFire + 1 <= numWorkers)
+        {
+            workersFire++;
+        }
+
+        UpdateFireHireTexts();
+    }
+
+    public void IncreaseHire()
+    {
+        if (workersHire + 1 <= maxHire)
+        {
+            workersHire++;
+        }
+
+        UpdateFireHireTexts();
+    }
+
+    public void DecreaseFire()
+    {
+        if (workersFire - 1 >= 0)
+        {
+            workersFire--;
+        }
+
+        UpdateFireHireTexts();
+    }
+
+    public void DecreaseHire()
+    {
+        if (workersHire - 1 >= 0)
+        {
+            workersHire--;
+        }
+
+        UpdateFireHireTexts();
+    }
+
+    void UpdateFireHireTexts()
+    {
+        hireQuestion.text = "We have " + workersHire + " applicants, how many you want to recruit?";
+        hireXworkers.text = workersHire.ToString();
+
+        fireQuestion.text = "We have " + workersFire + " workers, how many you want to fire?";
+        fireXworkers.text = workersFire.ToString();
+    }
+
+    public void Hire()
+    {
+        RecruitWorkers(workersHire);
+        HideHirePeople();
+    }
+
+    public void Fire()
+    {
+        numWorkers -= workersFire;
+        HideFirePeople();
+    }
+    #endregion
+
+    public void playClickSound()
+    {
+        buttonClick.Play();
+    }
+
     public void AcceptEvent()
     {
         switch (eventCase)
         {
             case 1:
                 CheckIfCanAfford();
-                HideEvent();
                 break;
             case 2:
                 IncreaseWorkerHappiness(0.1f);
+                cheer.Play();
                 ReduceInvestorsHappiness(0.1f);
                 StartCoroutine(ResearchMaterial());
                 HideEvent();
                 break;
             case 3:
-                IncreaseWorkerHappiness(0.2f);
-                shift8hours = true;
-                ChangeShiftStart();
+                IncreaseWorkerHappiness(0.1f);
+                cheer.Play();
+                ReduceCompanyHappiness(0.1f);
+                money += 5000;
+                incomePerDay -= piecesBuiltPerHourByWorker * 2;
                 HideEvent();
                 break;
             case 4:
@@ -274,6 +499,7 @@ public class Tutorial : GameInfo
                 break;
             case 5:
                 IncreaseWorkerHappiness(0.1f);
+                cheer.Play();
                 ReduceCompanyHappiness(0.1f);
                 PayInjuries();
                 HideEvent();
@@ -287,6 +513,7 @@ public class Tutorial : GameInfo
         {
             case 1:
                 ReduceWorkerHappiness(0.1f);
+                boo.Play();
                 HideEvent();
                 break;
             case 2:
@@ -295,6 +522,7 @@ public class Tutorial : GameInfo
                 break;
             case 3:
                 ReduceWorkerHappiness(0.1f);
+                boo.Play();
                 HideEvent();
                 break;
             case 4:
@@ -303,6 +531,7 @@ public class Tutorial : GameInfo
                 break;
             case 5:
                 ReduceWorkerHappiness(0.2f);
+                boo.Play();
                 HideEvent();
                 break;
         }
@@ -326,10 +555,10 @@ public class Tutorial : GameInfo
                 declineText.text = "Keep it like always";
                 break;
             case 3:
-                title.text = "Workers rights";
-                dilemaText.text = "Our workers demand an 8 hour shift instead of working until late";
-                acceptText.text = "Grant rights";
-                declineText.text = "Keep working slaves!";
+                title.text = "School trip";
+                dilemaText.text = "A school wants to visit the factory, they will pay but some workers will have to guide";
+                acceptText.text = "Grant visit";
+                declineText.text = "Another time";
                 break;
             case 4:
                 title.text = "We found new workers";
@@ -352,13 +581,14 @@ public class Tutorial : GameInfo
         GenerateEvent();
         ShowEvent();
         StartCoroutine(RandomEvent());
+        FindObjectOfType<Camera>().freezeMouseCamera = true;
     }
 
-    IEnumerator MonthPayment()
+    IEnumerator Payment()
     {
-        yield return new WaitForSeconds(300);
+        yield return new WaitForSeconds(120);
         money -= ((numWorkers * workerCost) + (piecesBuilt * costOfProductionPerPieceBuilt) + (housesForWorkers * houseMaintainancePrice));
-        StartCoroutine(MonthPayment());
+        StartCoroutine(Payment());
         Debug.Log("Money after payment: " + money);
     }
 
@@ -378,9 +608,15 @@ public class Tutorial : GameInfo
         }
     }
 
-    IEnumerator LookForWorkers()
+    public void GameOver()
     {
-        yield return new WaitForSeconds(15);
-        numWorkers += Random.Range(5, 10);
+        lose.SetActive(true);
+        gameOver.Play();
+    }
+
+    public void Win()
+    {
+        win.SetActive(true);
+        winSound.Play();
     }
 }

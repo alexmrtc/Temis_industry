@@ -11,23 +11,27 @@ public class GameInfo : MonoBehaviour
     public int hour;
     public int initialTime = 6;
 
+    public int daysSurvived = 0;
+
     public float sunSpeed = 6f;
     public float durationOfHourInSeconds = 2.5f;
 
     public int numWorkers = 10;
-    public float earningsPerWorker = 100;
+    public int workersHire = 0;
+    public int workersFire = 0;
+    public float earningsPerWorker = 300;
     public float workerCost = 1000;
 
     public int piecesBuiltPerHourByWorker = 4;
-    public float priceOfSalePerPieceBuilt = 750;
-    public float costOfProductionPerPieceBuilt = 400;
+    public float priceOfSalePerPieceBuilt = 1000;
+    public float costOfProductionPerPieceBuilt = 300;
 
     public int housesForWorkers = 1;
     public float houseConstructionPrice = 100000;
     public float houseMaintainancePrice = 2000;
 
 
-    public const float startingMoney = 500000;
+    public const float startingMoney = 200000;
     public float money;
     public float injuries = 300; 
 

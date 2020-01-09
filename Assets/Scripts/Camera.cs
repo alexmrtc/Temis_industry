@@ -11,12 +11,12 @@ public class Camera : MonoBehaviour
     private float inputZ;
     private float inputX;
 
-    public bool freezeMouseCamera = false;
+    public bool freezeMouseCamera;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        freezeMouseCamera = true;
     }
 
     // Update is called once per frame

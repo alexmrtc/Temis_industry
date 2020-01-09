@@ -21,6 +21,7 @@ public class DayCycle : GameInfo
 
     public AudioSource backgroundMusicDay;
     public AudioSource backgroundMusicNight;
+    public AudioSource cash;
 
     // Start is called before the first frame update
     void Start()
@@ -127,6 +128,8 @@ public class DayCycle : GameInfo
         if(hour == 6)
         {
             FindObjectOfType<Tutorial>().GetMoneyFunction();
+            cash.Play();
+            FindObjectOfType<Tutorial>().daysSurvived++;
         }
 
 
