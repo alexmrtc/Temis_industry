@@ -11,6 +11,8 @@ public class Camera : MonoBehaviour
     private float inputZ;
     private float inputX;
 
+    public bool freezeMouseCamera = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -20,6 +22,15 @@ public class Camera : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Mouse1) && freezeMouseCamera == false)
+        {
+            freezeMouseCamera = true;
+        }
+        else if (Input.GetKeyDown(KeyCode.Mouse1) && freezeMouseCamera == true)
+        {
+            freezeMouseCamera = false;
+        }
+
         inputX = Input.GetAxis("Horizontal");
         inputZ = Input.GetAxis("Vertical");
 
@@ -33,9 +44,12 @@ public class Camera : MonoBehaviour
             transform.position += transform.right * inputX * 50 * Time.deltaTime;
         }
 
-        yaw += speed * Input.GetAxis("Mouse X");
-        pitch -= speed * Input.GetAxis("Mouse Y");
+        if (freezeMouseCamera != true)
+        {
+            yaw += speed * Input.GetAxis("Mouse X");
+            pitch -= speed * Input.GetAxis("Mouse Y");
 
-        transform.eulerAngles = new Vector3(pitch, yaw, 0f);
+            transform.eulerAngles = new Vector3(pitch, yaw, 0f);
+        }
     }
 }
